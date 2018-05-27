@@ -19,6 +19,7 @@ const std::size_t CAPACIDAD =4;
 Quad::Quad(){
 	raiz=NULL;
 }
+// Creamos un quad tree a partir de un rectangulo que cre un usuario
 Quad::Quad(Rectangulo r){
 	raiz=new node;
 	raiz->boundary=r;
@@ -37,7 +38,7 @@ void Quad::insertar(monitor m){
 }
 
 void Quad::insert(node *&raiz,monitor persona){
-
+// Si no exisite raiz, se crea un nuevo quad con un rectangulo predefinifo por los diseñadores de la aplicacion
 	if(raiz==NULL){
 		Rectangulo r;
 		r.x=50;
@@ -55,12 +56,15 @@ void Quad::insert(node *&raiz,monitor persona){
 	}
 
 	else{
+		// Revisamos si el elemento a insertar esta dentro del rectangulo
 		if(inBoundary(raiz,persona)){
+			// Selleccionamos los tamaños del rectangulo de la raiz
 			Rectangulo bound=raiz->boundary;
 			int nx=bound.x;
 			int ny=bound.y;
 			int nw=bound.w;
 			int nh= bound.h;
+			// revisamos si esta dividida, en caso de estarlo revisamos en que hijo podemos insertar el monitor
 			if(raiz->divided==true){
 				insert(raiz->botLeftTree,persona);
 				insert(raiz->botRightTree,persona);
@@ -68,6 +72,7 @@ void Quad::insert(node *&raiz,monitor persona){
 				insert(raiz->topRightTree,persona);
 			}
 			else{
+				// En caso tal de que el queda tenga el numero maximo de monitores entonces didvidimos el rectangulo
 				if (raiz->personas.size()>CAPACIDAD){
 					//Primera division
 					Rectangulo primero;
@@ -134,8 +139,8 @@ void Quad::insert(node *&raiz,monitor persona){
 
 
 					raiz->divided=true;
-
-
+					
+					// Todos los monitores que estan en la raiz los pasamos a sus hijos
 					for (std::size_t i=0; i<raiz->personas.size(); i++){ // REvisar si falta un igual
 						insert(b,raiz->personas[i]);
 						insert(d,raiz->personas[i]);
@@ -144,7 +149,7 @@ void Quad::insert(node *&raiz,monitor persona){
 
 
 					}
-
+					// qitamos los elementos de la raiz
 					raiz->personas.clear();
 					insert(b,persona);
 					insert(d,persona);
@@ -158,6 +163,8 @@ void Quad::insert(node *&raiz,monitor persona){
 	}
 }
 
+
+// Metodo el cual sirve para ver si el rango de un usuario se intersecta con algun quad tree
 bool Quad::intersects(node *raiz,Rectangulo range){
 	bool a;
 	a=(range.x-range.w>raiz->boundary.x+raiz->boundary.w ||
@@ -167,6 +174,7 @@ bool Quad::intersects(node *raiz,Rectangulo range){
 	return !(a);
 }
 
+// Metodo que encuentra los monitoes que esta  cerca del usuario
 vector<monitor> Quad::searchNear(node *raiz,usuario p, vector<monitor> &x){ //Tengo duda si es necesario el &
 
 	Rectangulo area;
@@ -174,11 +182,11 @@ vector<monitor> Quad::searchNear(node *raiz,usuario p, vector<monitor> &x){ //Te
 	area.y=p.cy();
 	area.w=50;
 	area.h=50;
-
+		// Revisamos si se intersectan
 		if(!intersects(raiz,area)){
 			return x;
 		}else{
-
+			// Si el queda esta divido buscamos en cada uno de sus hijos
 			if(raiz->divided==true){
 
 
@@ -204,6 +212,7 @@ vector<monitor> Quad::searchNear(node *raiz,usuario p, vector<monitor> &x){ //Te
 					x.push_back(K[j]);
 				}
 			}else{
+				// sino lo esta verificamos en los monitores que estan en la raiz
 				for (std::size_t i=0;i<raiz->personas.size();i++){
 					if(inBoundary1(area,raiz->personas[i])){
 						x.push_back(raiz->personas[i]);
@@ -221,7 +230,7 @@ vector<monitor> Quad::searchNear(usuario p){
 	return final;
 }
 
-
+// Verificamoes si monitor esta en el quad
 
 bool Quad::inBoundary(node *raiz,monitor p){
 	bool a;
@@ -232,6 +241,8 @@ bool Quad::inBoundary(node *raiz,monitor p){
 	return a;
 }
 
+
+
 bool Quad::inBoundary1(Rectangulo raiz,monitor p){
 	bool a;
 	a=(p.cx()>=raiz.x - raiz.w &&
@@ -241,6 +252,8 @@ bool Quad::inBoundary1(Rectangulo raiz,monitor p){
 	return a;
 }
 
+
+// Imprimimos el quad tree
 void Quad::imprimir(std::ostream& out){
 	imprimir(raiz,out);
 }
